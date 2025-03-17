@@ -1,13 +1,13 @@
 <template>
     <div class="product-card">
         <div class="product-img">
-            <img :src="imagePath" :alt="name">
+            <img :src="product.imagePath" :alt="product.name">
         </div>
         <div class="product-info">
-            <div class="product-title">{{ name }}</div>
-            <div class="product-price">${{ price }}</div>
-            <div class="product-description">{{ description }}</div>
-            <button class="btn" @click="OrderComponentOpen">Order</button>
+            <div class="product-title">{{ product.name }}</div>
+            <div class="product-price">${{ product.price }}</div>
+            <div class="product-description">{{ product.description }}</div>
+            <button class="btn" @click="OrderComponentOpen(product)">Order</button>
         </div>
     </div>
 
@@ -15,19 +15,15 @@
 </template>
 
 <script lang="ts">
-
+import type { ProductItem } from '@/models/models';
 export default {
     name: 'ProductCardComponent',
     props: {
-        id: Number,
-        name: String,
-        price: Number,
-        imagePath: String,
-        description: String
+        product: {} as ProductItem
     },
     methods: {
-        OrderComponentOpen() {
-            this.$emit("OrderComponentOpen");
+        OrderComponentOpen(product: ProductItem) {
+            this.$emit("OrderComponentOpen", product);
         },
     }
 }

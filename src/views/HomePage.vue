@@ -17,8 +17,7 @@
             <p>Explore our most popular items, carefully selected for quality and innovation</p>
         </div>
         <div class="product-grid">
-            <ProductCardComponent v-for="item in productsList" :key="item.id" :id="item.id" :name="item.name"
-                :price="item.price" :imagePath="item.imagePath" :description="item.description"
+            <ProductCardComponent v-for="item in productsList" :key="item.id" :product="item"
                 @OrderComponentOpen="orderComponentOpen" />
         </div>
     </section>
@@ -111,7 +110,8 @@
 
     <FooterComponent />
 
-    <OrderComponent v-if="orderComponentVisible" @OrderComponentClose="orderComponentClose" />
+    <OrderComponent v-if="orderComponentVisible" :productItem="selectedProduct"
+        @OrderComponentClose="orderComponentClose" />
 </template>
 
 <script lang="ts">
@@ -119,6 +119,7 @@ import FooterComponent from '@/components/FooterComponent.vue';
 import HeaderComponent from '@/components/HeaderComponent.vue';
 import OrderComponent from '@/components/OrderComponent.vue';
 import ProductCardComponent from '@/components/ProductCardComponent.vue';
+import { ProductCategory, type ProductItem } from '@/models/models';
 
 export default {
     name: 'HomePage',
@@ -131,15 +132,17 @@ export default {
     data() {
         return {
             orderComponentVisible: false,
+            selectedProduct: {} as ProductItem,
             productsList: [
-                { id: 1, name: 'Premium Headphones', price: 199.99, imagePath: '/product_images/premium_headphones.jpeg', description: 'Wireless noise-cancelling headphones with premium sound quality and all-day comfort.' },
-                { id: 2, name: 'Smart Watch', price: 149.99, imagePath: '/product_images/smart_watches.jpeg', description: 'Health and fitness tracking with smartphone notifications and sleek design.' },
-                { id: 3, name: 'Portable Speaker', price: 89.99, imagePath: '/product_images/portable_speaker.jpeg', description: 'Waterproof Bluetooth speaker with 20-hour battery life and amazing sound.' }
+                { id: 1, name: 'Premium Headphones', category: ProductCategory.Electronics, price: 199.99, imagePath: '/product_images/premium_headphones.jpeg', description: 'Wireless noise-cancelling headphones with premium sound quality and all-day comfort.' } as ProductItem,
+                { id: 2, name: 'Smart Watch', category: ProductCategory.Electronics, price: 149.99, imagePath: '/product_images/smart_watches.jpeg', description: 'Health and fitness tracking with smartphone notifications and sleek design.' } as ProductItem,
+                { id: 3, name: 'Portable Speaker', category: ProductCategory.Electronics, price: 89.99, imagePath: '/product_images/portable_speaker.jpeg', description: 'Waterproof Bluetooth speaker with 20-hour battery life and amazing sound.' } as ProductItem
             ]
         }
     },
     methods: {
-        orderComponentOpen() {
+        orderComponentOpen(product: ProductItem) {
+            this.selectedProduct = product;
             this.orderComponentVisible = true;
         },
         orderComponentClose() {

@@ -7,28 +7,31 @@
                 <!-- Text input fields -->
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="full-name">Full Name</label>
-                        <input type="text" id="full-name" name="fullName" v-model="itemDetails.formData.fullName"
-                            required />
+                        <label for="buyer-full-name">Buyer Full Name</label>
+                        <input type="text" id="buyer-full-name" name="buyerFullName"
+                            v-model="itemDetails.formData.buyerFullName" required />
                     </div>
                     <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" v-model="itemDetails.formData.email" required />
+                        <label for="buyerEmail">Buyer Email</label>
+                        <input type="email" id="buyerEmail" name="buyerEmail" v-model="itemDetails.formData.buyerEmail"
+                            required />
                     </div>
                 </div>
 
                 <!-- Drop-down field -->
                 <div class="form-row">
                     <div class="form-group">
+                        <label for="product-name">Product Name</label>
+                        <input type="text" id="product-name" name="productName"
+                            v-model="itemDetails.formData.productName" required />
+                    </div>
+                    <div class="form-group">
                         <label for="product-category">Product Category</label>
-                        <select id="product-category" name="productCategory"
+                        <select id="product-category" name="productCategory[]"
                             v-model="itemDetails.formData.productCategory" required>
-                            <option value="">Select a category</option>
-                            <option value="electronics">Electronics</option>
-                            <option value="clothing">Clothing</option>
-                            <option value="home">Home Goods</option>
-                            <option value="beauty">Beauty & Personal Care</option>
-                            <option value="sports">Sports & Outdoors</option>
+                            <option value="" select>Select a category</option>
+                            <option :value="item" v-for="(item, index) in productCategoryStrings" :key="index">{{
+                                item }}</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -42,7 +45,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="delivery-date">Preferred Delivery Date</label>
-                        <input type="date" id="delivery-date" name="deliveryDate"
+                        <input type="datetime-local" id="delivery-date" name="deliveryDate"
                             v-model="itemDetails.formData.deliveryDate" required>
                     </div>
                 </div>
@@ -52,20 +55,11 @@
                     <div class="form-group full-width">
                         <label class="label-header">Shipping Method</label>
                         <div class="radio-group">
-                            <div class="radio-option">
-                                <input type="radio" id="standard" name="shipping" value="standard"
-                                    v-model="itemDetails.formData.shippingMethod" checked>
-                                <label for="standard">Standard Shipping (3-5 days)</label>
-                            </div>
-                            <div class="radio-option">
-                                <input type="radio" id="express" name="shipping" value="express"
-                                    v-model="itemDetails.formData.shippingMethod">
-                                <label for="express">Express Shipping (1-2 days)</label>
-                            </div>
-                            <div class="radio-option">
-                                <input type="radio" id="next-day" name="shipping" value="next-day"
-                                    v-model="itemDetails.formData.shippingMethod">
-                                <label for="next-day">Next Day Delivery</label>
+                            <div class="radio-option" v-for="(item, index) in shippingMethodStrings" :key="index">
+                                <input type="radio" id="{{ item }}" name="shippingMethod" value="{{ item }}"
+                                    v-model="itemDetails.formData.shippingMethod"
+                                    :checked="item == itemDetails.formData.shippingMethod">
+                                <label for="{{ item }}">{{ item }}</label>
                             </div>
                         </div>
                     </div>
@@ -99,22 +93,23 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="address">Shipping Address</label>
-                        <input type="text" id="address" name="address" required>
+                        <input type="text" id="address" name="address" v-model="itemDetails.formData.shippingAddress"
+                            required>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="city">City</label>
-                        <input type="text" id="city" name="city" required>
+                        <input type="text" id="city" name="city" v-model="itemDetails.formData.city" required>
                     </div>
                     <div class="form-group">
                         <label for="state">State/Province</label>
-                        <input type="text" id="state" name="state" required>
+                        <input type="text" id="state" name="state" v-model="itemDetails.formData.state" required>
                     </div>
                     <div class="form-group">
                         <label for="zip">Zip/Postal Code</label>
-                        <input type="text" id="zip" name="zip" required>
+                        <input type="text" id="zip" name="zip" v-model="itemDetails.formData.zipCode" required>
                     </div>
                 </div>
 
@@ -125,7 +120,8 @@
 </template>
 
 <script lang="ts">
-import type { OrderSubmission } from '@/models/models';
+import { ProductCategory, ShippingMethod, type OrderSubmission } from '@/models/models';
+import type { ProductItem } from '@/models/models';
 
 export default {
 
@@ -133,22 +129,37 @@ export default {
         closeForm() {
             this.$emit('OrderComponentClose');
         },
+        formatDateTime(date: Date): string {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0'); // Ensure two digits
+            const dd = String(date.getDate()).padStart(2, '0');
+            const hh = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+
+            return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+        }
+    },
+    props: {
+        productItem: {} as ProductItem
     },
     data() {
         return {
+            productCategoryStrings: Object.values(ProductCategory).filter(x => !Number.isInteger(x)),
+            shippingMethodStrings: Object.values(ShippingMethod).filter(x => !Number.isInteger(x)),
             itemDetails: {
                 formName: 'ProductOrderForm',
-                submittedAt: new Date().toDateString(),
+                submittedAt: new Date().toISOString(),
                 formData: {
                     additionalOptions: [],
                     city: '',
-                    deliveryDate: `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`,
-                    email: '',
-                    fullName: '',
-                    productCategory: '',
+                    deliveryDate: this.formatDateTime(new Date()),
+                    buyerFullName: '',
+                    buyerEmail: '',
+                    productName: this.$props.productItem.name,
+                    productCategory: this.$props.productItem.category,
                     quantity: 1,
                     shippingAddress: '',
-                    shippingMethod: 'standard',
+                    shippingMethod: ShippingMethod.Standard,
                     state: '',
                     zipCode: ''
                 }
