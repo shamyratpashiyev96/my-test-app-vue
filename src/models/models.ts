@@ -8,21 +8,21 @@ export interface ProductItem {
 }
 
 export interface OrderSubmission {
-    formName: string;
-    submittedAt: string;
-    formData: {
-        buyerFullName: string,
-        buyerEmail: string,
-        productName: string,
-        productCategory: ProductCategory,
-        quantity: number,
-        deliveryDate: string,
-        shippingMethod: ShippingMethod,
-        additionalOptions: string[],
-        shippingAddress: string,
-        city: string,
-        state: string,
-        zipCode: string
+    FormName: string;
+    SubmittedAt: string;
+    FormData: {
+        BuyerFullName: string,
+        BuyerEmail: string,
+        ProductName: string,
+        ProductCategory: ProductCategory,
+        Quantity: number,
+        DeliveryDate: string,
+        ShippingMethod: ShippingMethod,
+        AdditionalOptions: string[],
+        ShippingAddress: string,
+        City: string,
+        State: string,
+        ZipCode: string
     };
 }
 

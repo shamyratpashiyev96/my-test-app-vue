@@ -9,12 +9,12 @@
                     <div class="form-group">
                         <label for="buyer-full-name">Buyer Full Name<span class="required">*</span></label>
                         <input type="text" id="buyer-full-name" name="buyerFullName"
-                            v-model="itemDetails.formData.buyerFullName" />
+                            v-model="itemDetails.FormData.BuyerFullName" />
                     </div>
                     <div class="form-group">
                         <label for="buyerEmail">Buyer Email</label>
                         <input type="email" id="buyerEmail" name="buyerEmail"
-                            v-model="itemDetails.formData.buyerEmail" />
+                            v-model="itemDetails.FormData.BuyerEmail" />
                     </div>
                 </div>
 
@@ -23,12 +23,12 @@
                     <div class="form-group">
                         <label for="product-name">Product Name<span class="required">*</span></label>
                         <input type="text" id="product-name" name="productName"
-                            v-model="itemDetails.formData.productName" />
+                            v-model="itemDetails.FormData.ProductName" />
                     </div>
                     <div class="form-group">
                         <label for="product-category">Product Category<span class="required">*</span></label>
                         <select id="product-category" name="productCategory[]"
-                            v-model="itemDetails.formData.productCategory">
+                            v-model="itemDetails.FormData.ProductCategory">
                             <option value="" select>Select a category</option>
                             <option :value="item" v-for="(item, index) in productCategoryStrings" :key="index">{{
                                 item }}</option>
@@ -37,7 +37,7 @@
                     <div class="form-group">
                         <label for="quantity">Quantity<span class="required">*</span></label>
                         <input type="number" id="quantity" name="quantity" min="1"
-                            v-model="itemDetails.formData.quantity" />
+                            v-model="itemDetails.FormData.Quantity" />
                     </div>
                 </div>
 
@@ -46,7 +46,7 @@
                     <div class="form-group">
                         <label for="delivery-date">Preferred Delivery Date<span class="required">*</span></label>
                         <input type="datetime-local" id="delivery-date" name="deliveryDate"
-                            v-model="itemDetails.formData.deliveryDate">
+                            v-model="itemDetails.FormData.DeliveryDate">
                     </div>
                 </div>
 
@@ -57,8 +57,8 @@
                         <div class="radio-group">
                             <div class="radio-option" v-for="(item, index) in shippingMethodStrings" :key="index">
                                 <input type="radio" id="{{ item }}" name="shippingMethod" value="{{ item }}"
-                                    v-model="itemDetails.formData.shippingMethod"
-                                    :checked="item == itemDetails.formData.shippingMethod">
+                                    v-model="itemDetails.FormData.ShippingMethod"
+                                    :checked="item == itemDetails.FormData.ShippingMethod">
                                 <label for="{{ item }}">{{ item }}</label>
                             </div>
                         </div>
@@ -72,17 +72,17 @@
                         <div class="checkbox-group">
                             <div class="checkbox-option">
                                 <input type="checkbox" id="gift-wrap" name="additionalOptions[]" value="gift-wrap"
-                                    v-model="itemDetails.formData.additionalOptions" />
+                                    v-model="itemDetails.FormData.AdditionalOptions" />
                                 <label for="gift-wrap">Gift Wrap ($5.00)</label>
                             </div>
                             <div class="checkbox-option">
                                 <input type="checkbox" id="insurance" name="additionalOptions[]" value="insurance"
-                                    v-model="itemDetails.formData.additionalOptions" />
+                                    v-model="itemDetails.FormData.AdditionalOptions" />
                                 <label for="insurance">Shipping Insurance ($3.50)</label>
                             </div>
                             <div class="checkbox-option">
                                 <input type="checkbox" id="newsletter" name="additionalOptions[]" value="newsletter"
-                                    v-model="itemDetails.formData.additionalOptions" />
+                                    v-model="itemDetails.FormData.AdditionalOptions" />
                                 <label for="newsletter">Subscribe to newsletter</label>
                             </div>
                         </div>
@@ -93,22 +93,22 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="address">Shipping Address<span class="required">*</span></label>
-                        <input type="text" id="address" name="address" v-model="itemDetails.formData.shippingAddress">
+                        <input type="text" id="address" name="address" v-model="itemDetails.FormData.ShippingAddress">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="city">City<span class="required">*</span></label>
-                        <input type="text" id="city" name="city" v-model="itemDetails.formData.city">
+                        <input type="text" id="city" name="city" v-model="itemDetails.FormData.City">
                     </div>
                     <div class="form-group">
                         <label for="state">State/Province</label>
-                        <input type="text" id="state" name="state" v-model="itemDetails.formData.state">
+                        <input type="text" id="state" name="state" v-model="itemDetails.FormData.State">
                     </div>
                     <div class="form-group">
                         <label for="zip">Zip/Postal Code</label>
-                        <input type="text" id="zip" name="zip" v-model="itemDetails.formData.zipCode">
+                        <input type="text" id="zip" name="zip" v-model="itemDetails.FormData.ZipCode">
                     </div>
                 </div>
 
@@ -124,6 +124,8 @@
 import { ProductCategory, ShippingMethod, type OrderSubmission } from '@/models/models';
 import type { ProductItem } from '@/models/models';
 import * as yup from "yup";
+import { postData } from '@/services/FetchService';
+import routes from '@/router/routes';
 
 export default {
 
@@ -140,23 +142,27 @@ export default {
 
             return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
         },
-        submitForm() {
+        async submitForm() {
             try {
                 const schema = yup.object({
-                    buyerFullName: yup.string().required("buyerFullName is required"),
-                    productName: yup.string().required("productName is required"),
-                    productCategory: yup.string().required("productCategory is required"),
-                    quantity: yup.number().required("quantity should be number and is required"),
-                    deliveryDate: yup.string().required("deliveryDate is required"),
-                    shippingMethod: yup.string().required("shippingMethod is required"),
-                    shippingAddress: yup.string().required("shippingAddress is required"),
-                    city: yup.string().required("city is required"),
+                    BuyerFullName: yup.string().required("buyerFullName is required"),
+                    BuyerEmail: yup.string().email().required("productName is required"),
+                    ProductName: yup.string().required("productName is required"),
+                    ProductCategory: yup.string().required("productCategory is required"),
+                    Quantity: yup.number().required("quantity should be number and is required"),
+                    DeliveryDate: yup.string().required("deliveryDate is required"),
+                    ShippingMethod: yup.string().required("shippingMethod is required"),
+                    ShippingAddress: yup.string().required("shippingAddress is required"),
+                    City: yup.string().required("city is required"),
                 })
                 // Validate form data
-                schema.validateSync(this.itemDetails.formData, { abortEarly: false });
+                schema.validateSync(this.itemDetails.FormData, { abortEarly: true });
                 this.errorsString = ''; // Clear errors if valid
 
-                console.log("Form is valid! Sending data:");
+                const result = { ...this.itemDetails };
+                result.FormData = JSON.stringify(result.FormData);
+
+                await postData(routes.BackendUrl + routes.FormSubmissionUrl, result)
             } catch (err) {
                 this.errorsString = err;
             }
@@ -170,21 +176,21 @@ export default {
             productCategoryStrings: Object.values(ProductCategory).filter(x => !Number.isInteger(x)),
             shippingMethodStrings: Object.values(ShippingMethod).filter(x => !Number.isInteger(x)),
             itemDetails: {
-                formName: 'ProductOrderForm',
-                submittedAt: new Date().toISOString(),
-                formData: {
-                    additionalOptions: [],
-                    city: '',
-                    deliveryDate: this.formatDateTime(new Date()),
-                    buyerFullName: '',
-                    buyerEmail: '',
-                    productName: this.$props.productItem.name,
-                    productCategory: this.$props.productItem.category,
-                    quantity: 1,
-                    shippingAddress: '',
-                    shippingMethod: ShippingMethod.Standard,
-                    state: '',
-                    zipCode: ''
+                FormName: 'ProductOrderForm',
+                SubmittedAt: this.formatDateTime(new Date()),
+                FormData: {
+                    AdditionalOptions: [],
+                    City: '',
+                    DeliveryDate: this.formatDateTime(new Date()),
+                    BuyerFullName: '',
+                    BuyerEmail: '',
+                    ProductName: this.$props.productItem.name,
+                    ProductCategory: this.$props.productItem.category,
+                    Quantity: 1,
+                    ShippingAddress: '',
+                    ShippingMethod: ShippingMethod.Standard,
+                    State: '',
+                    ZipCode: ''
                 }
             } as OrderSubmission,
             errorsString: ''
