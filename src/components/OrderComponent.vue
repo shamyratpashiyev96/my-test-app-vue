@@ -3,57 +3,57 @@
         <div class="form-container">
             <button class="close-btn" aria-label="Close" @click="closeForm">&times;</button>
             <h1>Place Your Order</h1>
-            <form id="order-form">
+            <form id="order-form" @submit.prevent="submitForm">
                 <!-- Text input fields -->
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="buyer-full-name">Buyer Full Name</label>
+                        <label for="buyer-full-name">Buyer Full Name<span class="required">*</span></label>
                         <input type="text" id="buyer-full-name" name="buyerFullName"
-                            v-model="itemDetails.formData.buyerFullName" required />
+                            v-model="itemDetails.formData.buyerFullName" />
                     </div>
                     <div class="form-group">
                         <label for="buyerEmail">Buyer Email</label>
-                        <input type="email" id="buyerEmail" name="buyerEmail" v-model="itemDetails.formData.buyerEmail"
-                            required />
+                        <input type="email" id="buyerEmail" name="buyerEmail"
+                            v-model="itemDetails.formData.buyerEmail" />
                     </div>
                 </div>
 
                 <!-- Drop-down field -->
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="product-name">Product Name</label>
+                        <label for="product-name">Product Name<span class="required">*</span></label>
                         <input type="text" id="product-name" name="productName"
-                            v-model="itemDetails.formData.productName" required />
+                            v-model="itemDetails.formData.productName" />
                     </div>
                     <div class="form-group">
-                        <label for="product-category">Product Category</label>
+                        <label for="product-category">Product Category<span class="required">*</span></label>
                         <select id="product-category" name="productCategory[]"
-                            v-model="itemDetails.formData.productCategory" required>
+                            v-model="itemDetails.formData.productCategory">
                             <option value="" select>Select a category</option>
                             <option :value="item" v-for="(item, index) in productCategoryStrings" :key="index">{{
                                 item }}</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="quantity">Quantity</label>
+                        <label for="quantity">Quantity<span class="required">*</span></label>
                         <input type="number" id="quantity" name="quantity" min="1"
-                            v-model="itemDetails.formData.quantity" required />
+                            v-model="itemDetails.formData.quantity" />
                     </div>
                 </div>
 
                 <!-- Date input field -->
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="delivery-date">Preferred Delivery Date</label>
+                        <label for="delivery-date">Preferred Delivery Date<span class="required">*</span></label>
                         <input type="datetime-local" id="delivery-date" name="deliveryDate"
-                            v-model="itemDetails.formData.deliveryDate" required>
+                            v-model="itemDetails.formData.deliveryDate">
                     </div>
                 </div>
 
                 <!-- Radio buttons -->
                 <div class="form-row">
                     <div class="form-group full-width">
-                        <label class="label-header">Shipping Method</label>
+                        <label class="label-header">Shipping Method<span class="required">*</span></label>
                         <div class="radio-group">
                             <div class="radio-option" v-for="(item, index) in shippingMethodStrings" :key="index">
                                 <input type="radio" id="{{ item }}" name="shippingMethod" value="{{ item }}"
@@ -92,26 +92,27 @@
                 <!-- Address fields -->
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="address">Shipping Address</label>
-                        <input type="text" id="address" name="address" v-model="itemDetails.formData.shippingAddress"
-                            required>
+                        <label for="address">Shipping Address<span class="required">*</span></label>
+                        <input type="text" id="address" name="address" v-model="itemDetails.formData.shippingAddress">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="city">City</label>
-                        <input type="text" id="city" name="city" v-model="itemDetails.formData.city" required>
+                        <label for="city">City<span class="required">*</span></label>
+                        <input type="text" id="city" name="city" v-model="itemDetails.formData.city">
                     </div>
                     <div class="form-group">
                         <label for="state">State/Province</label>
-                        <input type="text" id="state" name="state" v-model="itemDetails.formData.state" required>
+                        <input type="text" id="state" name="state" v-model="itemDetails.formData.state">
                     </div>
                     <div class="form-group">
                         <label for="zip">Zip/Postal Code</label>
-                        <input type="text" id="zip" name="zip" v-model="itemDetails.formData.zipCode" required>
+                        <input type="text" id="zip" name="zip" v-model="itemDetails.formData.zipCode">
                     </div>
                 </div>
+
+                <p v-if="errorsString" class="error">{{ errorsString }}</p>
 
                 <button type="submit" class="btn">Place Order</button>
             </form>
@@ -122,6 +123,7 @@
 <script lang="ts">
 import { ProductCategory, ShippingMethod, type OrderSubmission } from '@/models/models';
 import type { ProductItem } from '@/models/models';
+import * as yup from "yup";
 
 export default {
 
@@ -137,6 +139,27 @@ export default {
             const min = String(date.getMinutes()).padStart(2, '0');
 
             return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+        },
+        submitForm() {
+            try {
+                const schema = yup.object({
+                    buyerFullName: yup.string().required("buyerFullName is required"),
+                    productName: yup.string().required("productName is required"),
+                    productCategory: yup.string().required("productCategory is required"),
+                    quantity: yup.number().required("quantity should be number and is required"),
+                    deliveryDate: yup.string().required("deliveryDate is required"),
+                    shippingMethod: yup.string().required("shippingMethod is required"),
+                    shippingAddress: yup.string().required("shippingAddress is required"),
+                    city: yup.string().required("city is required"),
+                })
+                // Validate form data
+                schema.validateSync(this.itemDetails.formData, { abortEarly: false });
+                this.errorsString = ''; // Clear errors if valid
+
+                console.log("Form is valid! Sending data:");
+            } catch (err) {
+                this.errorsString = err;
+            }
         }
     },
     props: {
@@ -164,6 +187,7 @@ export default {
                     zipCode: ''
                 }
             } as OrderSubmission,
+            errorsString: ''
         }
     }
 }
@@ -354,5 +378,10 @@ select {
     background-position: right 0.7rem top 50%;
     background-size: 0.65rem auto;
     padding-right: 1.5rem;
+}
+
+.error,
+.required {
+    color: red;
 }
 </style>
