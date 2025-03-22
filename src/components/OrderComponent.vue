@@ -114,89 +114,90 @@
 
                 <p v-if="errorsString" class="error">{{ errorsString }}</p>
 
-                <button type="submit" class="btn">Place Order</button>
+                <button type="submit" :class="submitButtonDisabled ? 'btn disabled' : 'btn'"
+                    :disabled="submitButtonDisabled">Place
+                    Order</button>
             </form>
         </div>
     </div>
 </template>
 
-<script lang="ts">
-import { ProductCategory, ShippingMethod, type OrderSubmission } from '@/models/models';
-import type { ProductItem } from '@/models/models';
-import * as yup from "yup";
-import { postData } from '@/services/FetchService';
+<script setup lang="ts">
+import { ProductCategory, ShippingMethod, type OrderSubmission, type ProductItem } from '@/models/models';
 import routes from '@/router/routes';
+import { postData } from '@/services/FetchService';
+import { ref, reactive, computed, defineEmits, defineProps } from 'vue';
+import * as yup from 'yup';
 
-export default {
+const props = defineProps<{ productItem: ProductItem }>();
+const emit = defineEmits(['OrderComponentClose']);
 
-    methods: {
-        closeForm() {
-            this.$emit('OrderComponentClose');
-        },
-        formatDateTime(date: Date): string {
-            const yyyy = date.getFullYear();
-            const mm = String(date.getMonth() + 1).padStart(2, '0'); // Ensure two digits
-            const dd = String(date.getDate()).padStart(2, '0');
-            const hh = String(date.getHours()).padStart(2, '0');
-            const min = String(date.getMinutes()).padStart(2, '0');
+const productCategoryStrings = computed(() => Object.values(ProductCategory).filter(x => !Number.isInteger(x)));
+const shippingMethodStrings = computed(() => Object.values(ShippingMethod).filter(x => !Number.isInteger(x)));
 
-            return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
-        },
-        async submitForm() {
-            try {
-                const schema = yup.object({
-                    BuyerFullName: yup.string().required("buyerFullName is required"),
-                    BuyerEmail: yup.string().email().required("productName is required"),
-                    ProductName: yup.string().required("productName is required"),
-                    ProductCategory: yup.string().required("productCategory is required"),
-                    Quantity: yup.number().required("quantity should be number and is required"),
-                    DeliveryDate: yup.string().required("deliveryDate is required"),
-                    ShippingMethod: yup.string().required("shippingMethod is required"),
-                    ShippingAddress: yup.string().required("shippingAddress is required"),
-                    City: yup.string().required("city is required"),
-                })
-                // Validate form data
-                schema.validateSync(this.itemDetails.FormData, { abortEarly: true });
-                this.errorsString = ''; // Clear errors if valid
+const errorsString = ref('');
+const submitButtonDisabled = ref(false);
 
-                const result = { ...this.itemDetails };
-                result.FormData = JSON.stringify(result.FormData);
+const formatDateTime = (date: Date): string => {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const hh = String(date.getHours()).padStart(2, '0');
+    const min = String(date.getMinutes()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+};
 
-                await postData(routes.BackendUrl + routes.FormSubmissionUrl, result)
-            } catch (err) {
-                this.errorsString = err;
-            }
-        }
-    },
-    props: {
-        productItem: {} as ProductItem
-    },
-    data() {
-        return {
-            productCategoryStrings: Object.values(ProductCategory).filter(x => !Number.isInteger(x)),
-            shippingMethodStrings: Object.values(ShippingMethod).filter(x => !Number.isInteger(x)),
-            itemDetails: {
-                FormName: 'ProductOrderForm',
-                SubmittedAt: this.formatDateTime(new Date()),
-                FormData: {
-                    AdditionalOptions: [],
-                    City: '',
-                    DeliveryDate: this.formatDateTime(new Date()),
-                    BuyerFullName: '',
-                    BuyerEmail: '',
-                    ProductName: this.$props.productItem.name,
-                    ProductCategory: this.$props.productItem.category,
-                    Quantity: 1,
-                    ShippingAddress: '',
-                    ShippingMethod: ShippingMethod.Standard,
-                    State: '',
-                    ZipCode: ''
-                }
-            } as OrderSubmission,
-            errorsString: ''
-        }
+const itemDetails = reactive<OrderSubmission>({
+    FormName: 'ProductOrderForm',
+    SubmittedAt: formatDateTime(new Date()),
+    FormData: {
+        AdditionalOptions: [],
+        City: '',
+        DeliveryDate: formatDateTime(new Date()),
+        BuyerFullName: '',
+        BuyerEmail: '',
+        ProductName: props.productItem.name,
+        ProductCategory: props.productItem.category,
+        Quantity: 1,
+        ShippingAddress: '',
+        ShippingMethod: ShippingMethod.Standard,
+        State: '',
+        ZipCode: ''
     }
-}
+});
+
+const closeForm = () => {
+    emit('OrderComponentClose');
+};
+
+const submitForm = async () => {
+    try {
+        const schema = yup.object({
+            BuyerFullName: yup.string().required("BuyerFullName is required"),
+            BuyerEmail: yup.string().email().required("BuyerEmail is required"),
+            ProductName: yup.string().required("ProductName is required"),
+            ProductCategory: yup.string().required("ProductCategory is required"),
+            Quantity: yup.number().required("Quantity should be number and is required"),
+            DeliveryDate: yup.string().required("DeliveryDate is required"),
+            ShippingMethod: yup.string().required("ShippingMethod is required"),
+            ShippingAddress: yup.string().required("ShippingAddress is required"),
+            City: yup.string().required("City is required"),
+        });
+
+        // Validate form data
+        schema.validateSync(itemDetails.FormData, { abortEarly: true });
+        errorsString.value = ''; // Clear errors if valid
+
+        const result = { ...itemDetails, FormData: JSON.stringify(itemDetails.FormData) };
+
+        submitButtonDisabled.value = true;
+        await postData(routes.BackendUrl + routes.FormSubmissionUrl, result)
+            .then(() => { emit('OrderComponentClose') });
+        ;
+    } catch (err) {
+        errorsString.value = err as string;
+    }
+};
 </script>
 
 <style scoped>
@@ -389,5 +390,10 @@ select {
 .error,
 .required {
     color: red;
+}
+
+.disabled {
+    background: gray !important;
+    cursor: not-allowed !important;
 }
 </style>

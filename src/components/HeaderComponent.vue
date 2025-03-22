@@ -14,10 +14,7 @@
     </header>
 </template>
 
-<script lang="ts">
-export default {
-    name: "HeaderComponent"
-}
+<script lang="ts" setup>
 </script>
 
 <style scoped>

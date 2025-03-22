@@ -1,32 +1,33 @@
 <template>
     <div class="product-card">
         <div class="product-img">
-            <img :src="product.imagePath" :alt="product.name">
+            <img :src="props.product.imagePath" :alt="props.product.name">
         </div>
         <div class="product-info">
-            <div class="product-title">{{ product.name }}</div>
-            <div class="product-price">${{ product.price }}</div>
-            <div class="product-description">{{ product.description }}</div>
-            <button class="btn" @click="OrderComponentOpen(product)">Order</button>
+            <div class="product-title">{{ props.product.name }}</div>
+            <div class="product-price">${{ props.product.price }}</div>
+            <div class="product-description">{{ props.product.description }}</div>
+            <button class="btn" @click="OrderComponentOpen(props.product)">Order</button>
         </div>
     </div>
 
 
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import type { ProductItem } from '@/models/models';
-export default {
-    name: 'ProductCardComponent',
-    props: {
-        product: {} as ProductItem
-    },
-    methods: {
-        OrderComponentOpen(product: ProductItem) {
-            this.$emit("OrderComponentOpen", product);
-        },
+import { defineProps, defineEmits } from 'vue';
+
+const props = defineProps<{ product: ProductItem }>();
+const emit = defineEmits({
+    OrderComponentOpen: (value: ProductItem) => {
+        return value;
     }
-}
+});
+
+const OrderComponentOpen = (product: ProductItem) => {
+    emit("OrderComponentOpen", product);
+};
 </script>
 
 <style>
