@@ -56,7 +56,7 @@
                         <label class="label-header">Shipping Method<span class="required">*</span></label>
                         <div class="radio-group">
                             <div class="radio-option" v-for="(item, index) in shippingMethodStrings" :key="index">
-                                <input type="radio" id="{{ item }}" name="shippingMethod" value="{{ item }}"
+                                <input type="radio" id="{{ item }}" name="shippingMethod" :value="item"
                                     v-model="itemDetails.FormData.ShippingMethod"
                                     :checked="item == itemDetails.FormData.ShippingMethod">
                                 <label for="{{ item }}">{{ item }}</label>
