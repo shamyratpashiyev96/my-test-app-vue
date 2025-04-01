@@ -14,3 +14,17 @@ export async function postData(url: string, data: object) {
         throw error;
     }
 }
+
+export async function getData(url: string) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Server error: ${response.status}`);
+
+        const res = await new Response(response.body).text()
+
+        return JSON.parse(res);
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        throw error;
+    }
+}
